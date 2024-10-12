@@ -5,6 +5,8 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const title = decodeURIComponent(searchParams.get("title"));
   const episode_number = searchParams.get("episodeNumber");
+  console.log("Titulo:", title);
+  console.log("Número de episodio:", episode_number);
 
   if (!title) {
     return new Response(
@@ -18,21 +20,26 @@ export async function GET(req) {
 
   try {
     const dataAnime = await searchAnime(title);
-    const urlEpisodeByNumber = await getAnimeEpisodes(
-      dataAnime[0].slug,
-      episode_number
-    );
-    console.log("URL del episodio:", urlEpisodeByNumber);
+    console.log("Datos del anime:", dataAnime);
 
-    const config = await getDisqusConfig(urlEpisodeByNumber);
-    console.log("Configuración", config);
+    // const urlEpisodeByNumber = await getAnimeEpisodes(
+    //   dataAnime[0].slug,
+    //   episode_number
+    // );
+    // console.log("URL del episodio:", urlEpisodeByNumber);
 
+    // const config = await getDisqusConfig(urlEpisodeByNumber);
+    // console.log("Configuración", config);
+    const config = {
+      pageUrl: `https://tioanime.com/ver/${dataAnime[0].slug}-${episode_number}`,
+      pageIdentifier: `https://tioanime.com/ver/${dataAnime[0].slug}-${episode_number}`,
+    };
     // Responder con los datos obtenidos
     return new Response(JSON.stringify(config), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "https://www.crunchyroll.com", // Restringido a Crunchyroll
+        "Access-Control-Allow-Origin": "https://tioanime.com", // Restringido a Crunchyroll
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Métodos permitidos
         "Access-Control-Allow-Headers": "Content-Type", // Encabezados permitidos
       },
@@ -47,7 +54,7 @@ export async function GET(req) {
         status: 500,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://www.crunchyroll.com", // Restringido a Crunchyroll
+          "Access-Control-Allow-Origin": "https://tioanime.com", // Restringido a Crunchyroll
         },
       }
     );
@@ -60,7 +67,7 @@ async function searchAnime(titulo) {
   body.append("value", titulo);
 
   // Realizar la solicitud a la API de AnimeFLV
-  const response = await fetch("https://www3.animeflv.net/api/animes/search", {
+  const response = await fetch("https://tioanime.com/api/search", {
     method: "POST",
     headers: {
       accept: "application/json, text/javascript, */*; q=0.01",
@@ -80,81 +87,85 @@ async function searchAnime(titulo) {
   return response.json();
 }
 
-async function getAnimeEpisodes(slug, episodeNumber) {
-  const animeUrl = `https://www3.animeflv.net/anime/${slug}`;
+// async function getAnimeEpisodes(slug, episodeNumber) {
+//   const animeUrl = `https://tioanime.com/anime/${slug}`;
 
-  try {
-    const response = await fetch(animeUrl, {
-      method: "GET",
-    });
+//   try {
+//     const response = await fetch(animeUrl, {
+//       method: "GET",
+//     });
 
-    const html = await response.text();
+//     const html = await response.text();
 
-    // Extraemos el script que contiene los episodios usando una expresión regular
-    const episodesMatch = html.match(/var episodes = (\[\[.+?\]\]);/);
-    if (episodesMatch && episodesMatch[1]) {
-      let episodes = JSON.parse(episodesMatch[1]);
-      //   console.log("Episodios encontrados antes de invertir:", episodes);
+//     // Extraemos el script que contiene los episodios usando una expresión regular
+//     const episodesMatch = html.match(/var episodes = (\[.+?\]);/);
+//     if (episodesMatch && episodesMatch[1]) {
+//       let episodes = JSON.parse(episodesMatch[1]);
+//       //   console.log("Episodios encontrados antes de invertir:", episodes);
 
-      // Invertimos el array para tener los episodios en el orden deseado
-      episodes = episodes.reverse();
-      //   console.log("Episodios después de invertir:", episodes);
+//       // Invertimos el array para tener los episodios en el orden deseado
+//       episodes = episodes.reverse();
+//       console.log("Episodios después de invertir:", episodes);
 
-      // Accedemos directamente al episodio usando el índice, restando 1
-      const episodeData = episodes[episodeNumber - 1]; // Restamos 1 para acceder al índice correcto
+//       // Accedemos directamente al episodio usando el índice, restando 1
+//       const episodeData = episodes[episodeNumber - 1]; // Restamos 1 para acceder al índice correcto
 
-      if (episodeData) {
-        const episodeId = episodeData[0]; // Extraemos siempre el valor en la posición 0
-        console.log(`ID del episodio ${episodeNumber}:`, episodeId);
+//       if (episodeData) {
+//         const episodeId = episodeData; // Extraemos siempre el valor en la posición 0
+//         console.log(`ID del episodio ${episodeNumber}:`, episodeId);
 
-        // Aquí podrías continuar con la lógica para inyectar los comentarios
-        return `https://www3.animeflv.net/ver/${slug}-${episodeId}`;
-      } else {
-        console.log(
-          `No se encontró el episodio con el número ${episodeNumber}.`
-        );
-        // alert("No se encontró el episodio en AnimeFLV.");
-        return null;
-      }
-    } else {
-      console.log("No se encontraron los episodios en el HTML.");
-      //   alert("No se pudieron encontrar los episodios en la página de AnimeFLV.");
-      return null;
-    }
-  } catch (error) {
-    console.error("Error al obtener el HTML del anime:", error);
-    // alert("Error al conectarse a la página de AnimeFLV.");
-    return null;
-  }
-}
+//         // Aquí podrías continuar con la lógica para inyectar los comentarios
+//         return `https://tioanime.com/ver/${slug}-${episodeId}`;
+//       } else {
+//         console.log(
+//           `No se encontró el episodio con el número ${episodeNumber}.`
+//         );
+//         // alert("No se encontró el episodio en AnimeFLV.");
+//         return null;
+//       }
+//     } else {
+//       console.log("No se encontraron los episodios en el HTML.");
+//       //   alert("No se pudieron encontrar los episodios en la página de AnimeFLV.");
+//       return null;
+//     }
+//   } catch (error) {
+//     console.error("Error al obtener el HTML del anime:", error);
+//     // alert("Error al conectarse a la página de AnimeFLV.");
+//     return null;
+//   }
+// }
 
-async function getDisqusConfig(urlEpisodeByNumber) {
-  const episodeUrl = urlEpisodeByNumber;
+// async function getDisqusConfig(urlEpisodeByNumber) {
+//   const episodeUrl = urlEpisodeByNumber;
 
-  try {
-    const response = await fetch(episodeUrl, { method: "GET" });
-    const html = await response.text();
-    const disqusConfigMatch = html.match(
-      /var disqus_config = function \(\) \{([\s\S]+?)\};/
-    );
+//   try {
+//     const response = await fetch(episodeUrl, { method: "GET" });
+//     const html = await response.text();
 
-    if (disqusConfigMatch && disqusConfigMatch[1]) {
-      const pageUrlMatch = disqusConfigMatch[1].match(
-        /this\.page\.url = '(.+?)';/
-      );
-      const pageIdentifierMatch = disqusConfigMatch[1].match(
-        /this\.page\.identifier = '(.+?)';/
-      );
+//     // Buscamos el bloque de script que contiene disqus_config
+//     const disqusConfigMatch = html.match(/\/\*([\s\S]+?)\*\//); // Busca dentro de un comentario de bloque
 
-      if (pageUrlMatch && pageIdentifierMatch) {
-        return {
-          pageUrl: pageUrlMatch[1],
-          pageIdentifier: pageIdentifierMatch[1],
-        };
-      }
-    }
-  } catch (error) {
-    console.error("Error al obtener la configuración de Disqus:", error);
-  }
-  return null;
-}
+//     if (disqusConfigMatch && disqusConfigMatch[1]) {
+//       // Extraemos el contenido del comentario donde está la configuración
+//       const disqusConfigContent = disqusConfigMatch[1];
+
+//       // Buscamos los valores de page.url y page.identifier
+//       const pageUrlMatch = disqusConfigContent.match(
+//         /this\.page\.url = (https:\/\/.+?);/
+//       );
+//       const pageIdentifierMatch = disqusConfigContent.match(
+//         /this\.page\.identifier = (https:\/\/.+?);/
+//       );
+
+//       if (pageUrlMatch && pageIdentifierMatch) {
+//         return {
+//           pageUrl: pageUrlMatch[1],
+//           pageIdentifier: pageIdentifierMatch[1],
+//         };
+//       }
+//     }
+//   } catch (error) {
+//     console.error("Error al obtener la configuración de Disqus:", error);
+//   }
+//   return null;
+// }
