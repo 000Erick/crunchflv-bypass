@@ -3,10 +3,10 @@
 export async function GET(req) {
   // Obtener el parámetro 'titulo' de la URL
   const { searchParams } = new URL(req.url);
-  const titulo = searchParams.get("titulo");
-  const episode_number = searchParams.get("episode_number");
+  const title = decodeURIComponent(searchParams.get("title"));
+  const episode_number = searchParams.get("episodeNumber");
 
-  if (!titulo) {
+  if (!title) {
     return new Response(
       JSON.stringify({ error: 'Falta el parámetro "titulo"' }),
       {
@@ -17,7 +17,7 @@ export async function GET(req) {
   }
 
   try {
-    const dataAnime = await searchAnime(titulo);
+    const dataAnime = await searchAnime(title);
     const urlEpisodeByNumber = await getAnimeEpisodes(
       dataAnime[0].slug,
       episode_number
@@ -94,11 +94,11 @@ async function getAnimeEpisodes(slug, episodeNumber) {
     const episodesMatch = html.match(/var episodes = (\[\[.+?\]\]);/);
     if (episodesMatch && episodesMatch[1]) {
       let episodes = JSON.parse(episodesMatch[1]);
-    //   console.log("Episodios encontrados antes de invertir:", episodes);
+      //   console.log("Episodios encontrados antes de invertir:", episodes);
 
       // Invertimos el array para tener los episodios en el orden deseado
       episodes = episodes.reverse();
-    //   console.log("Episodios después de invertir:", episodes);
+      //   console.log("Episodios después de invertir:", episodes);
 
       // Accedemos directamente al episodio usando el índice, restando 1
       const episodeData = episodes[episodeNumber - 1]; // Restamos 1 para acceder al índice correcto
@@ -113,17 +113,17 @@ async function getAnimeEpisodes(slug, episodeNumber) {
         console.log(
           `No se encontró el episodio con el número ${episodeNumber}.`
         );
-        alert("No se encontró el episodio en AnimeFLV.");
+        // alert("No se encontró el episodio en AnimeFLV.");
         return null;
       }
     } else {
       console.log("No se encontraron los episodios en el HTML.");
-      alert("No se pudieron encontrar los episodios en la página de AnimeFLV.");
+      //   alert("No se pudieron encontrar los episodios en la página de AnimeFLV.");
       return null;
     }
   } catch (error) {
     console.error("Error al obtener el HTML del anime:", error);
-    alert("Error al conectarse a la página de AnimeFLV.");
+    // alert("Error al conectarse a la página de AnimeFLV.");
     return null;
   }
 }
