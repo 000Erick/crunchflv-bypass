@@ -46,7 +46,12 @@ export async function GET(req) {
     // Responder con los datos obtenidos
     return new Response(JSON.stringify(data), {
       status: response.status,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "https://www.crunchyroll.com", // Restringido a Crunchyroll
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Métodos permitidos
+        "Access-Control-Allow-Headers": "Content-Type", // Encabezados permitidos
+      },
     });
   } catch (error) {
     return new Response(
@@ -56,7 +61,10 @@ export async function GET(req) {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "https://www.crunchyroll.com", // Restringido a Crunchyroll
+        },
       }
     );
   }
