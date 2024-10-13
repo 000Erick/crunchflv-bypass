@@ -39,7 +39,7 @@ export async function GET(req) {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "https://tioanime.com", // Restringido a Crunchyroll
+        "Access-Control-Allow-Origin": "https://www.crunchyroll.com/", // Restringido a Crunchyroll
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Métodos permitidos
         "Access-Control-Allow-Headers": "Content-Type", // Encabezados permitidos
       },
@@ -54,7 +54,7 @@ export async function GET(req) {
         status: 500,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "https://tioanime.com", // Restringido a Crunchyroll
+          "Access-Control-Allow-Origin": "https://www.crunchyroll.com/", // Restringido a Crunchyroll
         },
       }
     );
